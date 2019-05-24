@@ -13,6 +13,8 @@ This is a tensorflow re-implementation of [Focal Loss for Dense Object Detection
 | RetinaNet | ResNet50_v1 600 | VOC07 trainval | VOC07 test | 73.16 | - | 8X GeForce RTX 2080 Ti | 1 |
 | RetinaNet | ResNet50_v1d 600 | VOC07 trainval | VOC07 test | 73.26 | - | 8X GeForce RTX 2080 Ti | 1 |
 | RetinaNet | ResNet50_v1d 600 | VOC07+12 trainval | VOC07 test | 79.66 | - | 8X GeForce RTX 2080 Ti | 1 |
+| RetinaNet | ResNet101_v1d 600 | VOC07+12 trainval | VOC07 test | 81.05 | - | 8X GeForce RTX 2080 Ti | 1 |
+| RetinaNet | ResNet101_v1d 800 | VOC07+12 trainval | VOC07 test | 80.69 | - | 8X GeForce RTX 2080 Ti | 1 |
 | RetinaNet | ResNet50_v1 600 | COCO train2017 | COCO val2017 (coco minival) |  | 1x | 8X GeForce RTX 2080 Ti | 1 |
 
 ## My Development Environment
@@ -88,5 +90,5 @@ tensorboard --logdir=.
 ## Reference
 1、https://github.com/endernewton/tf-faster-rcnn   
 2、https://github.com/zengarden/light_head_rcnn   
-3、https://github.com/tensorflow/models/tree/master/research/object_detection
+3、https://github.com/tensorflow/models/tree/master/research/object_detection    
 4、https://github.com/fizyr/keras-retinanet
