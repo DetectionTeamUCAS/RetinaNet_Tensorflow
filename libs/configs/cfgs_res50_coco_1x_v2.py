@@ -7,7 +7,10 @@ import math
 """
 epoch-00: 00.0      epoch-01: 4.00
 epoch-02: 09.6      epoch-03: 14.6
-epoch-04: 19.6
+epoch-04: 19.6      epoch-05: 20.7
+epoch-06: 21.2      epoch-07: 23.4
+epoch-08: 25.4      epoch-14: 32.1
+epoch-15: 32.2      epoch-16: 32.7
 
 """
 

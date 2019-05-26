@@ -5,17 +5,17 @@ import tensorflow as tf
 import math
 
 """
-epoch-00: 00.0      epoch-01: 2.60
-epoch-02: 06.4      epoch-03: 12.8
-epoch-04: 19.5      epoch-05: 20.3
-epoch-06: 22.7      epoch-07: 23.6
-epoch-14: 32.1      epoch-15: 32.3
-epoch-16: 32.7      epoch-17: 32.8
+epoch-00: 3.90      epoch-01: 12.7
+epoch-02: 17.1      epoch-03: 21.6
+epoch-04: 24.1      epoch-05: 24.2
+epoch-06: 25.4      epoch-07: 26.3
+epoch-11: 27.5      epoch-12: 32.2
+epoch-17: 33.4      epoch-18: 33.4
 
 """
 
 # ------------------------------------------------
-VERSION = 'RetinaNet_COCO_1x_20190524'
+VERSION = 'RetinaNet_COCO_1x_20190525'
 NET_NAME = 'resnet50_v1d'  # 'MobilenetV2'
 ADD_BOX_IN_TENSORBOARD = True
 
@@ -49,8 +49,8 @@ FIXED_BLOCKS = 1  # allow 0~3
 FREEZE_BLOCKS = [True, False, False, False, False]  # for gluoncv backbone
 USE_07_METRIC = True
 
-MUTILPY_BIAS_GRADIENT = None   # 2.0  # if None, will not multipy
-GRADIENT_CLIPPING_BY_NORM = None   # 10.0  if None, will not clip
+MUTILPY_BIAS_GRADIENT = 2.0  # if None, will not multipy
+GRADIENT_CLIPPING_BY_NORM = 10.0  # if None, will not clip
 
 BATCH_SIZE = 1
 EPSILON = 1e-5
@@ -58,7 +58,7 @@ MOMENTUM = 0.9
 LR = 5e-4 * NUM_GPU * BATCH_SIZE
 DECAY_STEP = [SAVE_WEIGHTS_INTE*12, SAVE_WEIGHTS_INTE*16, SAVE_WEIGHTS_INTE*20]
 MAX_ITERATION = SAVE_WEIGHTS_INTE*20
-WARM_SETP = int(1.0 / 4.0 * SAVE_WEIGHTS_INTE)
+WARM_SETP = int(1.0 / 8.0 * SAVE_WEIGHTS_INTE)
 
 # -------------------------------------------- Data_preprocess_config
 DATASET_NAME = 'coco'  # 'pascal', 'coco'
@@ -83,7 +83,7 @@ BASE_ANCHOR_SIZE_LIST = [32, 64, 128, 256, 512]
 ANCHOR_STRIDE = [8, 16, 32, 64, 128]
 ANCHOR_SCALES = [2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)]
 ANCHOR_RATIOS = [0.5, 1.0, 2.0]
-ANCHOR_SCALE_FACTORS = [10.0, 10.0, 5.0, 5.0]
+ANCHOR_SCALE_FACTORS = None
 USE_CENTER_OFFSET = True
 
 # --------------------------------------------RPN config

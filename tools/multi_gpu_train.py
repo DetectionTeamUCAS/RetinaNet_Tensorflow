@@ -229,6 +229,8 @@ def train():
 
                         tf.get_variable_scope().reuse_variables()
                         grads = optimizer.compute_gradients(total_losses)
+                        if cfgs.GRADIENT_CLIPPING_BY_NORM is not None:
+                            grads = slim.learning.clip_gradient_norms(grads, cfgs.GRADIENT_CLIPPING_BY_NORM)
                         tower_grads.append(grads)
 
         for k in total_loss_dict.keys():
@@ -239,19 +241,21 @@ def train():
         else:
             grads = tower_grads[0]
 
-        # final_gvs = []
-        # with tf.variable_scope('Gradient_Mult'):
-        #     for grad, var in grads:
-        #         scale = 1.
-        #         # if '/biases:' in var.name:
-        #         #    scale *= 2.
-        #         if 'conv_new' in var.name:
-        #             scale *= 3.
-        #         if not np.allclose(scale, 1.0):
-        #             grad = tf.multiply(grad, scale)
-        #         final_gvs.append((grad, var))
+        final_gvs = []
+        with tf.variable_scope('Gradient_Mult'):
+            for grad, var in grads:
+                scale = 1.
+                if '/biases:' in var.name:
+                    scale *= cfgs.MUTILPY_BIAS_GRADIENT
+                if 'conv_new' in var.name:
+                    scale *= 3.
+                if not np.allclose(scale, 1.0):
+                    grad = tf.multiply(grad, scale)
 
-        apply_gradient_op = optimizer.apply_gradients(grads, global_step=global_step)
+                final_gvs.append((grad, var))
+
+        # apply_gradient_op = optimizer.apply_gradients(grads, global_step=global_step)
+        apply_gradient_op = optimizer.apply_gradients(final_gvs, global_step=global_step)
 
         variable_averages = tf.train.ExponentialMovingAverage(0.9999, global_step)
         variables_averages_op = variable_averages.apply(tf.trainable_variables())

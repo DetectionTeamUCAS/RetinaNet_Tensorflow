@@ -158,7 +158,7 @@ def parse_args():
     parser.add_argument('--showbox', dest='showbox',
                         help='whether show detecion results when evaluation',
                         default=False, type=bool)
-    parser.add_argument('--GPU', dest='GPU',
+    parser.add_argument('--gpu', dest='gpu',
                         help='gpu id',
                         default='0', type=str)
     parser.add_argument('--eval_num', dest='eval_num',
@@ -174,7 +174,7 @@ if __name__ == '__main__':
     print(20*"--")
     print(args)
     print(20*"--")
-    os.environ["CUDA_VISIBLE_DEVICES"] = args.GPU
+    os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
     eval(args.eval_num,  # use np.inf to test all the imgs. use 10 to test 10 imgs.
          eval_dir=args.eval_imgs,
          annotation_dir=args.test_annotation_dir,

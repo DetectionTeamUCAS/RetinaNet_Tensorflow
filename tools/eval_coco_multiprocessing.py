@@ -137,7 +137,7 @@ def eval_coco(det_net, real_test_img_list, gpu_ids):
 
         # if len(res['scores']) > cfgs.MAXIMUM_DETECTIONS:
         #     sort_indx = np.argsort(np.array(res['scores']) * -1)[:cfgs.MAXIMUM_DETECTIONS]
-        #     print(sort_indx)
+        #     # print(sort_indx)
         #     sort_scores = np.array(res['scores'])[sort_indx]
         #     sort_labels = np.array(res['labels'])[sort_indx]
         #     sort_boxes = np.array(boxes)[sort_indx]
