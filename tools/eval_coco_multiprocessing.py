@@ -201,20 +201,20 @@ def parse_args():
 
 if __name__ == '__main__':
 
-    # args = parse_args()
-    # print(20*"--")
-    # print(args)
-    # print(20*"--")
-    # eval(args.eval_num,  # use np.inf to test all the imgs. use 10 to test 10 imgs.
-    #      eval_data=args.eval_data,
-    #      eval_gt=args.eval_gt,
-    #      gpu_ids=args.gpus)
+    args = parse_args()
+    print(20*"--")
+    print(args)
+    print(20*"--")
+    eval(args.eval_num,  # use np.inf to test all the imgs. use 10 to test 10 imgs.
+         eval_data=args.eval_data,
+         eval_gt=args.eval_gt,
+         gpu_ids=args.gpus)
 
     # os.environ["CUDA_VISIBLE_DEVICES"] = cfgs.GPU_GROUP
-    eval(np.inf,  # use np.inf to test all the imgs. use 10 to test 10 imgs.
-         eval_data='/data/COCO/coco_minival2014.odgt',
-         eval_gt='/data/COCO/instances_minival2014.json',
-         gpu_ids='0,1,2,3,4,5,6,7')
+    # eval(np.inf,  # use np.inf to test all the imgs. use 10 to test 10 imgs.
+    #      eval_data='/data/COCO/coco_minival2014.odgt',
+    #      eval_gt='/data/COCO/instances_minival2014.json',
+    #      gpu_ids='0,1,2,3,4,5,6,7')
 
 
 

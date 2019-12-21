@@ -5,17 +5,13 @@ import tensorflow as tf
 import math
 
 """
-epoch-00: 3.90      epoch-01: 12.7
-epoch-02: 17.1      epoch-03: 21.6
-epoch-04: 24.1      epoch-05: 24.2
-epoch-06: 25.4      epoch-07: 26.3
-epoch-11: 27.5      epoch-12: 32.2
-epoch-17: 33.4      epoch-18: 33.4
+epoch-00:       epoch-01:
+
 
 """
 
 # ------------------------------------------------
-VERSION = 'RetinaNet_COCO_1x_20190525'
+VERSION = 'RetinaNet_COCO_1x_20191221'
 NET_NAME = 'resnet50_v1d'  # 'MobilenetV2'
 ADD_BOX_IN_TENSORBOARD = True
 
@@ -23,7 +19,7 @@ ADD_BOX_IN_TENSORBOARD = True
 ROOT_PATH = os.path.abspath('../')
 print(20*"++--")
 print(ROOT_PATH)
-GPU_GROUP = "0,1,2,3,4,5,6,7"
+GPU_GROUP = "0,1,2,3"
 NUM_GPU = len(GPU_GROUP.strip().split(','))
 SHOW_TRAIN_INFO_INTE = 20
 SMRY_ITER = 200
@@ -52,7 +48,7 @@ USE_07_METRIC = True
 MUTILPY_BIAS_GRADIENT = 2.0  # if None, will not multipy
 GRADIENT_CLIPPING_BY_NORM = 10.0  # if None, will not clip
 
-BATCH_SIZE = 1
+BATCH_SIZE = 2
 EPSILON = 1e-5
 MOMENTUM = 0.9
 LR = 5e-4 * NUM_GPU * BATCH_SIZE
@@ -70,7 +66,6 @@ IMG_MAX_LENGTH = 1000
 CLASS_NUM = 80
 
 # --------------------------------------------- Network_config
-BATCH_SIZE = 1
 SUBNETS_WEIGHTS_INITIALIZER = tf.random_normal_initializer(mean=0.0, stddev=0.01, seed=None)
 SUBNETS_BIAS_INITIALIZER = tf.constant_initializer(value=0.0)
 PROBABILITY = 0.01
@@ -95,7 +90,7 @@ IOU_NEGATIVE_THRESHOLD = 0.4
 NMS = True
 NMS_IOU_THRESHOLD = 0.5
 MAXIMUM_DETECTIONS = 100
-FILTERED_SCORE = 0.03
+FILTERED_SCORE = 0.05
 VIS_SCORE = 0.5
 
 

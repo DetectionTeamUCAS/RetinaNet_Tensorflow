@@ -112,7 +112,9 @@ __pycache__/
 *.json
 *.zip
 
-*/tools/demos/*
-*/output/*
-*/data/pretrained_weights/*
-*/data/tfrecord/*
+tools/demos/*
+tools/test_dota/*
+tools/test_icdar2015/*
+output/summary/*
+data/pretrained_weights/*
+data/tfrecord/*

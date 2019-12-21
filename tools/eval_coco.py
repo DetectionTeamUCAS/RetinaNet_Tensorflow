@@ -177,7 +177,7 @@ def parse_args():
     parser.add_argument('--showbox', dest='showbox',
                         help='whether show detecion results when evaluation',
                         default=True, type=bool)
-    parser.add_argument('--GPU', dest='GPU',
+    parser.add_argument('--gpu', dest='gpu',
                         help='gpu id',
                         default='0', type=str)
     parser.add_argument('--eval_num', dest='eval_num',

@@ -20,7 +20,6 @@ from libs.networks import build_whole_network
 from libs.val_libs import voc_eval
 from libs.box_utils import draw_box_in_img
 import argparse
-from help_utils import tools
 
 
 def eval_with_plac(det_net, real_test_imgname_list, img_root, draw_imgs=False):
@@ -151,10 +150,10 @@ def parse_args():
 
     parser.add_argument('--eval_imgs', dest='eval_imgs',
                         help='evaluate imgs dir ',
-                        default='/data/VOCdevkit/VOC2007/JPEGImages', type=str)
+                        default='/data/yangxue/dataset/VOC2007/VOC2007_test/VOCdevkit/VOC2007/JPEGImages', type=str)
     parser.add_argument('--annotation_dir', dest='test_annotation_dir',
                         help='the dir save annotations',
-                        default='/data/VOCdevkit/VOC2007/Annotations', type=str)
+                        default='/data/yangxue/dataset/VOC2007/VOC2007_test/VOCdevkit/VOC2007/Annotations', type=str)
     parser.add_argument('--showbox', dest='showbox',
                         help='whether show detecion results when evaluation',
                         default=False, type=bool)

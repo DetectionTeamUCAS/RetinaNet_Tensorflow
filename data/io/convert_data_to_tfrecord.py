@@ -10,7 +10,7 @@ import cv2
 from libs.label_name_dict.label_dict import *
 from help_utils.tools import *
 
-tf.app.flags.DEFINE_string('VOC_dir', '/data/code/VOC2007/VOCdevkit/VOC2007/', 'Voc dir')
+tf.app.flags.DEFINE_string('VOC_dir', '/data/yangxue/dataset/VOC2007/VOCdevkit/VOC2007', 'Voc dir')
 tf.app.flags.DEFINE_string('xml_dir', 'Annotations', 'xml dir')
 tf.app.flags.DEFINE_string('image_dir', 'JPEGImages', 'image dir')
 tf.app.flags.DEFINE_string('save_name', 'train', 'save name')
@@ -71,9 +71,9 @@ def read_xml_gtbox_and_label(xml_path):
 
 
 def convert_pascal_to_tfrecord():
-    xml_path = FLAGS.VOC_dir + FLAGS.xml_dir
-    image_path = FLAGS.VOC_dir + FLAGS.image_dir
-    save_path = FLAGS.save_dir + FLAGS.dataset + '_' + FLAGS.save_name + '.tfrecord'
+    xml_path = os.path.join(FLAGS.VOC_dir, FLAGS.xml_dir)
+    image_path = os.path.join(FLAGS.VOC_dir, FLAGS.image_dir)
+    save_path = os.path.join(FLAGS.save_dir, FLAGS.dataset + '_' + FLAGS.save_name + '.tfrecord')
     mkdir(FLAGS.save_dir)
 
     # writer_options = tf.python_io.TFRecordOptions(tf.python_io.TFRecordCompressionType.ZLIB)

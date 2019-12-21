@@ -23,6 +23,7 @@ class DetectionNetwork(object):
         self.base_network_name = base_network_name
         self.is_training = is_training
         self.num_anchors_per_location = len(cfgs.ANCHOR_SCALES) * len(cfgs.ANCHOR_RATIOS)
+        self.losses_dict = {}
 
     def build_base_network(self, input_img_batch):
 
@@ -198,17 +199,7 @@ class DetectionNetwork(object):
         anchors = self.make_anchors(feature_pyramid)
 
         # 4. postprocess rpn proposals. such as: decode, clip, filter
-        if not self.is_training:
-            with tf.variable_scope('postprocess_detctions'):
-                boxes, scores, category = postprocess_detctions(rpn_bbox_pred=rpn_box_pred,
-                                                                rpn_cls_prob=rpn_cls_prob,
-                                                                img_shape=img_shape,
-                                                                anchors=anchors,
-                                                                is_training=self.is_training)
-                return boxes, scores, category
-
-        #  5. build loss
-        else:
+        if self.is_training:
             with tf.variable_scope('build_loss'):
                 labels, target_delta, anchor_states = tf.py_func(func=anchor_target_layer,
                                                                  inp=[gtboxes_batch, anchors],
@@ -220,19 +211,22 @@ class DetectionNetwork(object):
 
                 reg_loss = losses.smooth_l1_loss(target_delta, rpn_box_pred, anchor_states)
 
-                losses_dict = {'cls_loss': cls_loss, 'reg_loss': reg_loss * 2}
+                self.losses_dict = {'cls_loss': cls_loss, 'reg_loss': reg_loss * 2}
 
-            with tf.variable_scope('postprocess_detctions'):
-                boxes, scores, category = postprocess_detctions(rpn_bbox_pred=rpn_box_pred,
-                                                                rpn_cls_prob=rpn_cls_prob,
-                                                                img_shape=img_shape,
-                                                                anchors=anchors,
-                                                                is_training=self.is_training)
-                boxes = tf.stop_gradient(boxes)
-                scores = tf.stop_gradient(scores)
-                category = tf.stop_gradient(category)
+        with tf.variable_scope('postprocess_detctions'):
+            boxes, scores, category = postprocess_detctions(rpn_bbox_pred=rpn_box_pred,
+                                                            rpn_cls_prob=rpn_cls_prob,
+                                                            img_shape=img_shape,
+                                                            anchors=anchors,
+                                                            is_training=self.is_training)
+            boxes = tf.stop_gradient(boxes)
+            scores = tf.stop_gradient(scores)
+            category = tf.stop_gradient(category)
 
-                return boxes, scores, category, losses_dict
+        if self.is_training:
+            return boxes, scores, category, self.losses_dict
+        else:
+            return boxes, scores, category
 
     def get_restorer(self):
         checkpoint_path = tf.train.latest_checkpoint(os.path.join(cfgs.TRAINED_CKPT, cfgs.VERSION))

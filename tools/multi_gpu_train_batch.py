@@ -12,7 +12,7 @@ import time
 sys.path.append("../")
 
 from libs.configs import cfgs
-from libs.networks import build_whole_network
+from libs.networks import build_whole_network_batch
 from data.io.read_tfrecord_multi_gpu import next_batch
 from libs.box_utils import show_box_in_tensor
 from help_utils import tools
@@ -93,26 +93,26 @@ def sum_gradients(tower_grads):
 
 
 def get_gtboxes_and_label(gtboxes_and_label, num_objects):
-    return gtboxes_and_label[:int(num_objects), :]
+    return gtboxes_and_label[:, :int(max(num_objects)), :]
 
 
-def warmup_lr(init_lr, global_step, warmup_step, num_gpu):
+def warmup_lr(init_lr, global_step, warmup_step, num_per_iter):
     def warmup(end_lr, global_step, warmup_step):
         start_lr = end_lr * 0.1
         global_step = tf.cast(global_step, tf.float32)
         return start_lr + (end_lr - start_lr) * global_step / warmup_step
 
-    def decay(start_lr, global_step, num_gpu):
+    def decay(start_lr, global_step, num_per_iter):
         lr = tf.train.piecewise_constant(global_step,
-                                         boundaries=[np.int64(cfgs.DECAY_STEP[0] // num_gpu),
-                                                     np.int64(cfgs.DECAY_STEP[1] // num_gpu),
-                                                     np.int64(cfgs.DECAY_STEP[2] // num_gpu)],
+                                         boundaries=[np.int64(cfgs.DECAY_STEP[0] // num_per_iter),
+                                                     np.int64(cfgs.DECAY_STEP[1] // num_per_iter),
+                                                     np.int64(cfgs.DECAY_STEP[2] // num_per_iter)],
                                          values=[start_lr, start_lr / 10., start_lr / 100., start_lr / 1000.])
         return lr
 
     return tf.cond(tf.less_equal(global_step, warmup_step),
                    true_fn=lambda: warmup(init_lr, global_step, warmup_step),
-                   false_fn=lambda: decay(init_lr, global_step, num_gpu))
+                   false_fn=lambda: decay(init_lr, global_step, num_per_iter))
 
 
 def train():
@@ -121,12 +121,12 @@ def train():
 
         num_gpu = len(cfgs.GPU_GROUP.strip().split(','))
         global_step = slim.get_or_create_global_step()
-        lr = warmup_lr(cfgs.LR, global_step, cfgs.WARM_SETP, num_gpu)
+        lr = warmup_lr(cfgs.LR, global_step, cfgs.WARM_SETP, num_gpu*cfgs.BATCH_SIZE)
         tf.summary.scalar('lr', lr)
 
         optimizer = tf.train.MomentumOptimizer(lr, momentum=cfgs.MOMENTUM)
-        retinanet = build_whole_network.DetectionNetwork(base_network_name=cfgs.NET_NAME,
-                                                         is_training=True)
+        retinanet = build_whole_network_batch.DetectionNetwork(base_network_name=cfgs.NET_NAME,
+                                                               is_training=True)
 
         with tf.name_scope('get_batch'):
             img_name_batch, img_batch, gtboxes_and_label_batch, num_objects_batch, img_h_batch, img_w_batch = \
@@ -138,22 +138,27 @@ def train():
         # data processing
         inputs_list = []
         for i in range(num_gpu):
-            img = tf.expand_dims(img_batch[i], axis=0)
+            start = i*cfgs.BATCH_SIZE
+            end = (i+1)*cfgs.BATCH_SIZE
+            img = img_batch[start:end, :, :, :]
             if cfgs.NET_NAME in ['resnet152_v1d', 'resnet101_v1d', 'resnet50_v1d']:
                 img = img / tf.constant([cfgs.PIXEL_STD])
 
-            gtboxes_and_label = tf.cast(tf.reshape(gtboxes_and_label_batch[i], [-1, 5]), tf.float32)
-            num_objects = num_objects_batch[i]
-            num_objects = tf.cast(tf.reshape(num_objects, [-1, ]), tf.float32)
+            gtboxes_and_label = tf.cast(tf.reshape(gtboxes_and_label_batch[start:end, :, :],
+                                                   [cfgs.BATCH_SIZE, -1, 5]), tf.float32)
+            num_objects = num_objects_batch[start:end]
+            num_objects = tf.cast(tf.reshape(num_objects, [cfgs.BATCH_SIZE, -1, ]), tf.float32)
 
-            img_h = img_h_batch[i]
-            img_w = img_w_batch[i]
+            img_h = img_h_batch[start:end]
+            img_w = img_w_batch[start:end]
+            # img_h = tf.cast(tf.reshape(img_h, [-1, ]), tf.float32)
+            # img_w = tf.cast(tf.reshape(img_w, [-1, ]), tf.float32)
 
             inputs_list.append([img, gtboxes_and_label, num_objects, img_h, img_w])
 
         # put_op_list = []
         # get_op_list = []
-        # for i in range(num_gpu):
+        # for i in range(cfgs.NUM_GPU):
         #     with tf.device("/GPU:%s" % i):
         #         area = tf.contrib.staging.StagingArea(
         #             dtypes=[tf.float32, tf.float32, tf.float32])
@@ -171,7 +176,7 @@ def train():
         }
 
         with tf.variable_scope(tf.get_variable_scope()):
-            for i in range(num_gpu):
+            for i in range(cfgs.NUM_GPU):
                 with tf.device('/gpu:%d' % i):
                     with tf.name_scope('tower_%d' % i):
                         with slim.arg_scope(
@@ -186,26 +191,28 @@ def train():
                                 gtboxes_and_label = tf.py_func(get_gtboxes_and_label,
                                                                inp=[inputs_list[i][1], inputs_list[i][2]],
                                                                Tout=tf.float32)
-                                gtboxes_and_label = tf.reshape(gtboxes_and_label, [-1, 5])
+                                gtboxes_and_label = tf.reshape(gtboxes_and_label, [cfgs.BATCH_SIZE, -1, 5])
 
                                 img = inputs_list[i][0]
                                 img_shape = inputs_list[i][-2:]
+                                h_crop = tf.reduce_max(img_shape[0])
+                                w_crop = tf.reduce_max(img_shape[1])
                                 img = tf.image.crop_to_bounding_box(image=img,
                                                                     offset_height=0,
                                                                     offset_width=0,
-                                                                    target_height=tf.cast(img_shape[0], tf.int32),
-                                                                    target_width=tf.cast(img_shape[1], tf.int32))
+                                                                    target_height=tf.cast(h_crop, tf.int32),
+                                                                    target_width=tf.cast(w_crop, tf.int32))
 
                                 outputs = retinanet.build_whole_detection_network(input_img_batch=img,
                                                                                   gtboxes_batch=gtboxes_and_label)
-                                gtboxes_in_img = show_box_in_tensor.draw_boxes_with_categories(img_batch=img,
-                                                                                               boxes=gtboxes_and_label[:, :-1],
-                                                                                               labels=gtboxes_and_label[:, -1])
+                                gtboxes_in_img = show_box_in_tensor.draw_boxes_with_categories(img_batch=tf.expand_dims(img[0, :, :, :], axis=0),
+                                                                                               boxes=gtboxes_and_label[0, :, :-1],
+                                                                                               labels=gtboxes_and_label[0, :, -1])
                                 tf.summary.image('Compare/gtboxes_gpu:%d' % i, gtboxes_in_img)
 
                                 if cfgs.ADD_BOX_IN_TENSORBOARD:
                                     detections_in_img = show_box_in_tensor.draw_boxes_with_categories_and_scores(
-                                        img_batch=img,
+                                        img_batch=tf.expand_dims(img[0, :, :, :], axis=0),
                                         boxes=outputs[0],
                                         scores=outputs[1],
                                         labels=outputs[2])
@@ -216,12 +223,12 @@ def train():
                                 total_losses = 0.0
                                 for k in loss_dict.keys():
                                     total_losses += loss_dict[k]
-                                    total_loss_dict[k] += loss_dict[k] / num_gpu
+                                    total_loss_dict[k] += loss_dict[k] / cfgs.NUM_GPU
 
-                                total_losses = total_losses / num_gpu
+                                total_losses = total_losses / cfgs.NUM_GPU
                                 total_loss_dict['total_losses'] += total_losses
 
-                                if i == num_gpu - 1:
+                                if i == cfgs.NUM_GPU - 1:
                                     regularization_losses = tf.get_collection(
                                         tf.GraphKeys.REGULARIZATION_LOSSES)
                                     # weight_decay_loss = tf.add_n(slim.losses.get_regularization_losses())
@@ -266,7 +273,7 @@ def train():
         summary_op = tf.summary.merge_all()
 
         restorer, restore_ckpt = retinanet.get_restorer()
-        saver = tf.train.Saver(max_to_keep=25)
+        saver = tf.train.Saver(max_to_keep=5)
 
         init_op = tf.group(
             tf.global_variables_initializer(),
@@ -277,6 +284,7 @@ def train():
             allow_soft_placement=True, log_device_placement=False)
         tfconfig.gpu_options.allow_growth = True
 
+        num_per_iter = cfgs.NUM_GPU * cfgs.BATCH_SIZE
         with tf.Session(config=tfconfig) as sess:
             sess.run(init_op)
 
@@ -292,7 +300,7 @@ def train():
                 restorer.restore(sess, restore_ckpt)
                 print('restore model')
 
-            for step in range(cfgs.MAX_ITERATION // num_gpu):
+            for step in range(cfgs.MAX_ITERATION // num_per_iter):
                 training_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 
                 if step % cfgs.SHOW_TRAIN_INFO_INTE != 0 and step % cfgs.SMRY_ITER != 0:
@@ -309,9 +317,9 @@ def train():
 
                         print('***'*20)
                         print("""%s: global_step:%d  current_step:%d"""
-                              % (training_time, (global_stepnp-1)*num_gpu, step*num_gpu))
+                              % (training_time, (global_stepnp-1)*num_per_iter, step*num_per_iter))
                         print("""per_cost_time:%.3fs"""
-                              % ((end - start) / num_gpu))
+                              % ((end - start) / num_per_iter))
                         loss_str = ''
                         for k in total_loss_dict_.keys():
                             loss_str += '%s:%.3f\n' % (k, total_loss_dict_[k])
@@ -320,16 +328,16 @@ def train():
                     else:
                         if step % cfgs.SMRY_ITER == 0:
                             _, global_stepnp, summary_str = sess.run([train_op, global_step, summary_op])
-                            summary_writer.add_summary(summary_str, (global_stepnp-1)*num_gpu)
+                            summary_writer.add_summary(summary_str, (global_stepnp-1)*num_per_iter)
                             summary_writer.flush()
 
-                if (step > 0 and step % (cfgs.SAVE_WEIGHTS_INTE // num_gpu) == 0) or (step >= cfgs.MAX_ITERATION // num_gpu - 1):
+                if (step > 0 and step % (cfgs.SAVE_WEIGHTS_INTE // num_per_iter) == 0) or (step >= cfgs.MAX_ITERATION // num_per_iter - 1):
 
                     save_dir = os.path.join(cfgs.TRAINED_CKPT, cfgs.VERSION)
                     if not os.path.exists(save_dir):
                         os.mkdir(save_dir)
 
-                    save_ckpt = os.path.join(save_dir, '{}_'.format(cfgs.DATASET_NAME) + str((global_stepnp-1)*num_gpu) + 'model.ckpt')
+                    save_ckpt = os.path.join(save_dir, '{}_'.format(cfgs.DATASET_NAME) + str((global_stepnp-1)*num_per_iter) + 'model.ckpt')
                     saver.save(sess, save_ckpt)
                     print(' weights had been saved')
 
