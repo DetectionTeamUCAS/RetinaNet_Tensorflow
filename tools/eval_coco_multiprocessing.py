@@ -17,7 +17,7 @@ import argparse
 sys.path.append("../")
 
 from data.io.image_preprocess import short_side_resize_for_inference_data
-from libs.networks import build_whole_network
+from libs.networks import build_whole_network_batch
 from help_utils import tools
 from libs.label_name_dict.label_dict import *
 
@@ -74,7 +74,7 @@ def worker(gpu_id, images, det_net, result_queue):
             print('restore model %d ...' % gpu_id)
         for a_img in images:
             record = json.loads(a_img)
-            img_path = os.path.join('/data/COCO/val2017', record['fpath'].split('_')[-1])
+            img_path = os.path.join('/data/yangxue/dataset/COCO/val2017', record['fpath'].split('_')[-1])
             raw_img = cv2.imread(img_path)
             # raw_img = cv2.imread(record['fpath'])
             raw_h, raw_w = raw_img.shape[0], raw_img.shape[1]
@@ -169,8 +169,8 @@ def eval(num_imgs, eval_data, eval_gt, gpu_ids):
     else:
         real_test_img_list = test_img_list[: num_imgs]
 
-    faster_rcnn = build_whole_network.DetectionNetwork(base_network_name=cfgs.NET_NAME,
-                                                       is_training=False)
+    faster_rcnn = build_whole_network_batch.DetectionNetwork(base_network_name=cfgs.NET_NAME,
+                                                             is_training=False)
     detected_json = eval_coco(det_net=faster_rcnn, real_test_img_list=real_test_img_list, gpu_ids=gpu_ids)
 
     # save_path = os.path.join('./eval_coco', cfgs.VERSION)
@@ -183,11 +183,11 @@ def parse_args():
     parser = argparse.ArgumentParser('evaluate the result with Pascal2007 stdand')
 
     parser.add_argument('--eval_data', dest='eval_data',
-                        help='evaluate imgs dir ',
-                        default='coco_minival2014.odgt', type=str)
+                        help='evaluate imgs dir, download link: https://drive.google.com/file/d/1Au55e6lqvuTunNBZO2Cj4Kh9XySyM3ZN/view?usp=sharing',
+                        default='/data/yangxue/dataset/COCO/coco_minival2014.odgt', type=str)
     parser.add_argument('--eval_gt', dest='eval_gt',
-                        help='eval gt',
-                        default='instances_minival2014.json',
+                        help='eval gt, download link: https://drive.google.com/file/d/1cgyEzdGVfx7zPNUO0lLfm8pu0HfIj3Xv/view?usp=sharing',
+                        default='/data/yangxue/dataset/COCO/instances_minival2014.json',
                         type=str)
     parser.add_argument('--gpus', dest='gpus',
                         help='gpu id',

@@ -5,8 +5,15 @@ import tensorflow as tf
 import math
 
 """
-epoch-00:       epoch-01:
-
+epoch-00: 9.30      epoch-01: 18.8
+epoch-02: 22.4      epoch-03: 24.1
+epoch-04: 26.1      epoch-05: 25.7
+epoch-06: 27.2      epoch-07: 28.4
+epoch-08: 27.7      epoch-09: 29.6
+epoch-10: 28.2      epoch-11: 29.0
+epoch-12: 33.4      epoch-13: 33.7
+epoch-14: 33.9      epoch-15: 34.0
+epoch-16: 34.3      epoch-17: 34.3
 
 """
 

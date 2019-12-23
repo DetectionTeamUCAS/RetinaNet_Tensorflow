@@ -16,7 +16,7 @@ sys.path.append("../")
 
 from data.io.image_preprocess import short_side_resize_for_inference_data
 from libs.configs import cfgs
-from libs.networks import build_whole_network
+from libs.networks import build_whole_network_batch
 from libs.val_libs import voc_eval
 from libs.box_utils import draw_box_in_img
 import argparse
@@ -126,8 +126,8 @@ def eval(num_imgs, eval_dir, annotation_dir, showbox):
     else:
         real_test_imgname_list = test_imgname_list[: num_imgs]
 
-    faster_rcnn = build_whole_network.DetectionNetwork(base_network_name=cfgs.NET_NAME,
-                                                       is_training=False)
+    faster_rcnn = build_whole_network_batch.DetectionNetwork(base_network_name=cfgs.NET_NAME,
+                                                             is_training=False)
     all_boxes = eval_with_plac(det_net=faster_rcnn, real_test_imgname_list=real_test_imgname_list,
                                img_root=eval_dir, draw_imgs=showbox)
 

@@ -14,7 +14,7 @@ sys.path.append("../")
 sys.path.insert(0, '/home/yjr/PycharmProjects/Faster-RCNN_TF/data/lib_coco/PythonAPI')
 from data.io.image_preprocess import short_side_resize_for_inference_data
 from libs.configs import cfgs
-from libs.networks import build_whole_network
+from libs.networks import build_whole_network_batch
 from libs.val_libs import voc_eval
 from libs.box_utils import draw_box_in_img
 from libs.label_name_dict.coco_dict import LABEL_NAME_MAP, classes_originID
@@ -148,8 +148,8 @@ def eval(num_imgs):
     if num_imgs !=np.inf:
         imgId_list = imgId_list[: num_imgs]
 
-    faster_rcnn = build_whole_network.DetectionNetwork(base_network_name=cfgs.NET_NAME,
-                                                       is_training=False)
+    faster_rcnn = build_whole_network_batch.DetectionNetwork(base_network_name=cfgs.NET_NAME,
+                                                             is_training=False)
     save_dir = os.path.join(cfgs.EVALUATE_DIR, cfgs.VERSION)
     eval_with_plac(det_net=faster_rcnn, coco=coco, imgId_list=imgId_list, out_json_root=save_dir,
                    draw_imgs=True)

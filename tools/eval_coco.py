@@ -168,10 +168,10 @@ def parse_args():
     parser = argparse.ArgumentParser('evaluate the result with Pascal2007 stdand')
 
     parser.add_argument('--eval_data', dest='eval_data',
-                        help='evaluate imgs dir ',
+                        help='evaluate imgs dir, download link: https://drive.google.com/file/d/1Au55e6lqvuTunNBZO2Cj4Kh9XySyM3ZN/view?usp=sharing',
                         default='coco_minival2014.odgt', type=str)
     parser.add_argument('--eval_gt', dest='eval_gt',
-                        help='eval gt',
+                        help='eval gt, download link: https://drive.google.com/file/d/1cgyEzdGVfx7zPNUO0lLfm8pu0HfIj3Xv/view?usp=sharing',
                         default='instances_minival2014.json',
                         type=str)
     parser.add_argument('--showbox', dest='showbox',
@@ -189,21 +189,21 @@ def parse_args():
 
 if __name__ == '__main__':
 
-    # args = parse_args()
-    # print(20*"--")
-    # print(args)
-    # print(20*"--")
-    # os.environ["CUDA_VISIBLE_DEVICES"] = args.GPU
-    # eval(args.eval_num,  # use np.inf to test all the imgs. use 10 to test 10 imgs.
-    #      eval_data=args.eval_data,
-    #      eval_gt=args.eval_gt,
-    #      showbox=args.showbox)
+    args = parse_args()
+    print(20*"--")
+    print(args)
+    print(20*"--")
+    os.environ["CUDA_VISIBLE_DEVICES"] = args.GPU
+    eval(args.eval_num,  # use np.inf to test all the imgs. use 10 to test 10 imgs.
+         eval_data=args.eval_data,
+         eval_gt=args.eval_gt,
+         showbox=args.showbox)
 
-    os.environ["CUDA_VISIBLE_DEVICES"] = '0'
-    eval(np.inf,  # use np.inf to test all the imgs. use 10 to test 10 imgs.
-         eval_data='/data/COCO/coco_minival2014.odgt',
-         eval_gt='/data/COCO/instances_minival2014.json',
-         showbox=False)
+    # os.environ["CUDA_VISIBLE_DEVICES"] = '0'
+    # eval(np.inf,  # use np.inf to test all the imgs. use 10 to test 10 imgs.
+    #      eval_data='/data/COCO/coco_minival2014.odgt',
+    #      eval_gt='/data/COCO/instances_minival2014.json',
+    #      showbox=False)
 
 
 

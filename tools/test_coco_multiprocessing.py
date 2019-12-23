@@ -18,7 +18,7 @@ from multiprocessing import Queue, Process
 sys.path.append("../")
 
 from data.io.image_preprocess import short_side_resize_for_inference_data
-from libs.networks import build_whole_network
+from libs.networks import build_whole_network_batch
 from help_utils import tools
 from libs.label_name_dict.label_dict import *
 
@@ -140,8 +140,8 @@ def eval(num_imgs, eval_data, json_file, gpu_ids):
     else:
         real_test_img_list = test_img_list[: num_imgs]
 
-    faster_rcnn = build_whole_network.DetectionNetwork(base_network_name=cfgs.NET_NAME,
-                                                       is_training=False)
+    faster_rcnn = build_whole_network_batch.DetectionNetwork(base_network_name=cfgs.NET_NAME,
+                                                             is_training=False)
     test_coco(det_net=faster_rcnn, real_test_img_list=real_test_img_list, eval_data=eval_data, gpu_ids=gpu_ids)
 
 
@@ -170,21 +170,21 @@ def parse_args():
 
 if __name__ == '__main__':
 
-    # args = parse_args()
-    # print(20*"--")
-    # print(args)
-    # print(20*"--")
-    # os.environ["CUDA_VISIBLE_DEVICES"] = args.GPU
-    # eval(np.inf,  # use np.inf to test all the imgs. use 10 to test 10 imgs.
-    #      eval_data=args.eval_data,
-    #      eval_gt=args.eval_gt,
-    #      gpu_ids=args.gpus)
+    args = parse_args()
+    print(20*"--")
+    print(args)
+    print(20*"--")
+    os.environ["CUDA_VISIBLE_DEVICES"] = args.gpus
+    eval(np.inf,  # use np.inf to test all the imgs. use 10 to test 10 imgs.
+         eval_data=args.eval_data,
+         json_file=args.eval_gt,
+         gpu_ids=args.gpus)
 
     # os.environ["CUDA_VISIBLE_DEVICES"] = '0'
-    eval(np.inf,  # use np.inf to test all the imgs. use 10 to test 10 imgs.
-         eval_data='/data/COCO/test2017',
-         json_file='/data/COCO/annotation/image_info_test-dev2017.json',
-         gpu_ids='0,1,2,3')
+    # eval(np.inf,  # use np.inf to test all the imgs. use 10 to test 10 imgs.
+    #      eval_data='/data/COCO/test2017',
+    #      json_file='/data/COCO/annotation/image_info_test-dev2017.json',
+    #      gpu_ids='0,1,2,3')
 
     # cocoval('./eval_coco/FPN_Res101_20190108_v1/coco_res.json',
     #         '/unsullied/sharefs/_research_detection/GeneralDetection/COCO/data/MSCOCO/instances_minival2014.json')
