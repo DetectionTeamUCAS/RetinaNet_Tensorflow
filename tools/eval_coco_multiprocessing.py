@@ -105,7 +105,7 @@ def eval_coco(det_net, real_test_img_list, gpu_ids):
     gpu_num = len(gpu_ids.strip().split(','))
 
     nr_image = math.ceil(nr_records / gpu_num)
-    result_queue = Queue(500)
+    result_queue = Queue(5000)
     procs = []
 
     for i in range(gpu_num):
